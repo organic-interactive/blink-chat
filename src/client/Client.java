@@ -1,6 +1,14 @@
 package client;
 
-import com.sun.scenario.effect.impl.Renderer;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.event.ActionEvent;
@@ -8,8 +16,11 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.StackPane;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -18,12 +29,53 @@ import javafx.stage.Stage;
  * @author Paul
  */
 public class Client extends Application {
-    ScrollPane scrollPane;
-    TextField textField;
+    private ScrollPane scrollPane;
+    private TextField textField;
+    private TextArea textArea;
+    private ExecutorService executor;
+    private ConcurrentLinkedQueue<String> newSends = new ConcurrentLinkedQueue<String>();
+    private PrintWriter pw;
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws IOException {
+        Socket sock = null; 
+        try {
+            sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object)
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //Socket sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object) 
+        OutputStream ostream = sock.getOutputStream();
+        pw = new PrintWriter(ostream, true);   // receiving from server ( receiveRead object) 
+        textArea = new TextArea();
         scrollPane = new ScrollPane();
+        scrollPane.setContent(textArea);
+        textArea.setMinWidth(310);
+        textArea.setMaxWidth(310);
+        textArea.setMinHeight(480);
+        textArea.setEditable(false);
         textField = new TextField();
+        textField.setMinWidth(300);
+        textField.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent t) {
+                if (textField.getText().length() > 0) {
+                    newSends.add(textField.getText());
+                    textArea.setText(textArea.getText() + textField.getText() + "\n");
+                    textField.setText("");
+                }
+            }
+        });
+        textArea.setOnKeyTyped(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent ke) {
+                textField.setText(textField.getText() + ke.getCharacter());
+                textField.requestFocus();
+                textField.end();
+            }
+        });
+        AnchorPane root = new AnchorPane();
+        GridPane grid = new GridPane();
+        grid.setVgap(5);
         Button btn = new Button();
         VBox vBox = new VBox();
         btn.setText("Say 'Hello World'");
@@ -34,21 +86,44 @@ public class Client extends Application {
                 System.out.println("Hello World!1");
             }
         });
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setFitToHeight(true);
-//        scrollPane.setMaxWidth(50);
-        vBox.getChildren().addAll(scrollPane, textField);
-        StackPane root = new StackPane();
-        vBox.prefHeightProperty().bind(root.widthProperty());
-        root.getChildren().addAll(vBox);
+        grid.add(textArea, 0, 0);
+        grid.add(textField, 0, 1);
+        grid.setMinHeight(500);
+        grid.setMinWidth(300);
+        root.getChildren().add(grid);
         
         Scene scene = new Scene(root, 300, 500);
         
-        primaryStage.setTitle("Hello World!");
+        primaryStage.setTitle("blink");
         primaryStage.setScene(scene);
+        textField.requestFocus();
         primaryStage.show();
+        primaryStage.setResizable(false);
+        executor = Executors.newCachedThreadPool();
+        executor.execute(new SendMessages());
+        executor.execute(new ReceiveMessages());
     }
-
+    private class SendMessages implements Runnable {
+        public void run() {
+            
+            while (true){
+                while (!newSends.isEmpty()) {
+                    String message = newSends.remove();
+                    System.out.println(message);
+                    pw.println(message);
+                    pw.flush();
+                    System.out.println("flushed");
+                }
+            }
+        }
+    }
+    private class ReceiveMessages implements Runnable {
+        public void run() {
+            while (true){
+                
+            }
+        }
+    }
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
      * main() serves only as fallback in case the application can not be
