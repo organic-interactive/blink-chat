@@ -49,7 +49,8 @@ public class Client extends Application {
         Socket sock = null;
         
         try {
-            sock = new Socket("50.174.120.178", 3000); // reading from keyboard (keyRead object)
+//            sock = new Socket("50.174.120.178", 3000); // reading from keyboard (keyRead object)
+            sock = new Socket("127.0.0.1", 3000);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -71,8 +72,9 @@ public class Client extends Application {
             @Override
             public void handle(ActionEvent t) {
                 if (textField.getText().length() > 0) {
-                    newSends.add(username + ":" + textField.getText());
-                    textArea.setText(textArea.getText() + username + ":" + textField.getText() + "\n");
+                    String newMessage = username + ":" + textField.getText();
+                    newSends.add(newMessage);
+                    addMessage(newMessage);
                     textField.setText("");
                 }
             }
@@ -129,6 +131,7 @@ public class Client extends Application {
                 if (nickEntry.getText().length() > 0) {
                     username = nickEntry.getText();
                     nickStage.close();
+                    textArea.setText("Connected.");
                 }
             }
         });
@@ -141,6 +144,9 @@ public class Client extends Application {
                 System.exit(0);
             }
         });
+    }
+    private void addMessage(String msg) {
+        textArea.appendText("\n" + msg);
     }
     private class SendMessages implements Runnable {
         public void run() {
@@ -162,7 +168,7 @@ public class Client extends Application {
                 try {
                     while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
-                            textArea.setText(textArea.getText() + newMessage + "\n");
+                            addMessage(newMessage);
                         }
                     }
                 } catch (IOException ex) {

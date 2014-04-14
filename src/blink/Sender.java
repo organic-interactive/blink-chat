@@ -23,6 +23,7 @@ public class Sender {
     private PrintWriter printWriter;
     private BufferedReader bufferedReader;
     private String latestMessage;
+    private boolean connected = true;
     
     public Sender(PrintWriter pw, BufferedReader br) {
         this.id = i++;
@@ -32,11 +33,17 @@ public class Sender {
     public void sendMessage(Message message) {
         printWriter.println(message.getText());
     }
+    public boolean isConnected() {
+        return connected;
+    }
     public boolean hasMessages() {
         try {
             latestMessage = bufferedReader.readLine();
         } catch (IOException ex) {
-            Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Someone disconnected.");
+            connected = false;
+            return false;
+            //Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
         }
         return latestMessage != null;
     }

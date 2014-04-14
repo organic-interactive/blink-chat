@@ -104,6 +104,8 @@ public class ServerManager {
                         Message newMessage = sender.getMessage();
                         newMessages.add(newMessage);
                         System.out.println(newMessage.getText());
+                    } else if (!sender.isConnected()) {
+                        break;
                     }
                 }
             }
