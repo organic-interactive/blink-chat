@@ -27,6 +27,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 
 /**
  *
@@ -48,7 +49,7 @@ public class Client extends Application {
         Socket sock = null;
         
         try {
-            sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object)
+            sock = new Socket("50.174.120.178", 3000); // reading from keyboard (keyRead object)
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -134,6 +135,12 @@ public class Client extends Application {
         nickStage.setResizable(false);
         nickStage.show();
         nickStage.requestFocus();
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                System.exit(0);
+            }
+        });
     }
     private class SendMessages implements Runnable {
         public void run() {
