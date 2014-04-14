@@ -6,6 +6,7 @@
 
 package server;
 
+import blink.Message;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -21,10 +25,12 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Paul
+ * @author popuguy
  */
 public class ServerManager {
     private ExecutorService executor = Executors.newCachedThreadPool();
+    private ArrayList<PrintWriter> clients = new ArrayList<PrintWriter>();
+    private ConcurrentLinkedQueue<Message> newMessages = new ConcurrentLinkedQueue<Message>();
     ServerManager() {
             System.out.println("go");
     }
@@ -64,11 +70,19 @@ public class ServerManager {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
+                    clients.add(pwrite);
                     clientManagerStart(receiveRead);
                 }
             }
         }
         executor.execute(new ConnectionManager());
+    }
+    private void messageSenderStart() {
+        class MessageSender implements Runnable{
+            public void run() {
+                
+            }
+        }
     }
     private void clientManagerStart(final BufferedReader receiver) {
         class ClientManager implements Runnable {
@@ -78,6 +92,8 @@ public class ServerManager {
                     try {
                         if ((receiveMessage = receiver.readLine()) != null) {
                             System.out.println(receiveMessage);
+                            Message newMessage = new Message((new Date()).getTime(), receiveMessage, "");
+                            newMessages.add(newMessage);
                             //pwrite.println("server:fukin nerd");
                         }
                     } catch (IOException ex) {

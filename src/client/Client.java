@@ -118,7 +118,6 @@ public class Client extends Application {
                     System.out.println(message);
                     pw.println(message);
                     pw.flush();
-                    System.out.println("flushed");
                 }
             }
         }
