@@ -13,8 +13,9 @@ package blink;
 public class Message {
     private final long timestamp;
     private final String text;
-    private final String userId;
-    public Message(long timestamp, String text, String userId) {
+    private final int userId;
+    
+    public Message(long timestamp, String text, int userId) {
         this.timestamp = timestamp;
         this.text = text;
         this.userId = userId;
@@ -22,7 +23,7 @@ public class Message {
     public String getText() {
         return text;
     }
-    public String getUserId() {
+    public int getUserId() {
         return userId;
     }
     public long getMessageId() {

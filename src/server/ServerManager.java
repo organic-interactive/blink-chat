@@ -7,6 +7,7 @@
 package server;
 
 import blink.Message;
+import blink.Sender;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  */
 public class ServerManager {
     private ExecutorService executor = Executors.newCachedThreadPool();
-    private ArrayList<PrintWriter> clients = new ArrayList<PrintWriter>();
+    private ArrayList<Sender> clients = new ArrayList<Sender>();
     private ConcurrentLinkedQueue<Message> newMessages = new ConcurrentLinkedQueue<Message>();
     ServerManager() {
             System.out.println("go");
@@ -70,34 +70,40 @@ public class ServerManager {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     BufferedReader receiveRead = new BufferedReader(new InputStreamReader(istream));
-                    clients.add(pwrite);
-                    clientManagerStart(receiveRead);
+                    Sender sender = new Sender(pwrite, receiveRead);
+                    clients.add(sender);
+                    clientManagerStart(sender);
                 }
             }
         }
         executor.execute(new ConnectionManager());
+        messageSenderStart();
     }
     private void messageSenderStart() {
         class MessageSender implements Runnable{
             public void run() {
-                
+                while (true) {
+                    while (!newMessages.isEmpty()) {
+                        Message newMessage = newMessages.remove();
+                        for (Sender client: clients) {
+                            if (client.getId() != newMessage.getUserId())
+                                client.sendMessage(newMessage);
+                        }
+                    }
+                }
             }
         }
+        executor.execute(new MessageSender());
     }
-    private void clientManagerStart(final BufferedReader receiver) {
+    private void clientManagerStart(final Sender sender) {
         class ClientManager implements Runnable {
             public void run(){
                 String receiveMessage, sendMessage;
                 while (true){
-                    try {
-                        if ((receiveMessage = receiver.readLine()) != null) {
-                            System.out.println(receiveMessage);
-                            Message newMessage = new Message((new Date()).getTime(), receiveMessage, "");
-                            newMessages.add(newMessage);
-                            //pwrite.println("server:fukin nerd");
-                        }
-                    } catch (IOException ex) {
-                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                    if (sender.hasMessages()) {
+                        Message newMessage = sender.getMessage();
+                        newMessages.add(newMessage);
+                        System.out.println(newMessage.getText());
                     }
                 }
             }

@@ -23,25 +23,30 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  *
- * @author Paul
+ * @author popuguy
  */
 public class Client extends Application {
     private ScrollPane scrollPane;
     private TextField textField;
+    private TextField nickEntry;
     private TextArea textArea;
     private ExecutorService executor;
     private ConcurrentLinkedQueue<String> newSends = new ConcurrentLinkedQueue<String>();
     private PrintWriter pw;
     private BufferedReader receiveRead;
-    private static final String username = "paul";
+    private String username = "";
+    Stage nickStage;
     @Override
     public void start(Stage primaryStage) throws IOException {
-        Socket sock = null; 
+        Socket sock = null;
+        
         try {
             sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object)
         } catch (IOException ex) {
@@ -108,6 +113,27 @@ public class Client extends Application {
         executor = Executors.newCachedThreadPool();
         executor.execute(new SendMessages());
         executor.execute(new ReceiveMessages());
+        nickStage = new Stage();
+        nickStage.initOwner(primaryStage);
+        nickStage.setTitle("enter nick");
+        nickStage.initStyle(StageStyle.UTILITY);
+        StackPane nickRoot = new StackPane();
+        nickEntry = new TextField();
+        nickRoot.getChildren().add(nickEntry);
+        Scene nickScene = new Scene(nickRoot, 200, 40);
+        nickStage.setScene(nickScene);
+        nickEntry.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent t) {
+                if (nickEntry.getText().length() > 0) {
+                    username = nickEntry.getText();
+                    nickStage.close();
+                }
+            }
+        });
+        nickStage.setResizable(false);
+        nickStage.show();
+        nickStage.requestFocus();
     }
     private class SendMessages implements Runnable {
         public void run() {
