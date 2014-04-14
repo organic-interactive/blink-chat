@@ -1,6 +1,8 @@
 package client;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -35,6 +37,8 @@ public class Client extends Application {
     private ExecutorService executor;
     private ConcurrentLinkedQueue<String> newSends = new ConcurrentLinkedQueue<String>();
     private PrintWriter pw;
+    private BufferedReader receiveRead;
+    private static final String username = "paul";
     @Override
     public void start(Stage primaryStage) throws IOException {
         Socket sock = null; 
@@ -45,8 +49,10 @@ public class Client extends Application {
         }
         //Socket sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object) 
         OutputStream ostream = sock.getOutputStream();
+        receiveRead = new BufferedReader(new InputStreamReader(sock.getInputStream()));
         pw = new PrintWriter(ostream, true);   // receiving from server ( receiveRead object) 
         textArea = new TextArea();
+        textArea.setWrapText(true);
         scrollPane = new ScrollPane();
         scrollPane.setContent(textArea);
         textArea.setMinWidth(310);
@@ -59,8 +65,8 @@ public class Client extends Application {
             @Override
             public void handle(ActionEvent t) {
                 if (textField.getText().length() > 0) {
-                    newSends.add(textField.getText());
-                    textArea.setText(textArea.getText() + textField.getText() + "\n");
+                    newSends.add(username + ":" + textField.getText());
+                    textArea.setText(textArea.getText() + username + ":" + textField.getText() + "\n");
                     textField.setText("");
                 }
             }
@@ -120,6 +126,17 @@ public class Client extends Application {
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
+                String newMessage = "";
+                try {
+                    while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
+                        if (newMessage.length() > 0) {
+                            textArea.setText(textArea.getText() + newMessage + "\n");
+                        }
+                    }
+                } catch (IOException ex) {
+                    System.out.println("receive error");
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 
             }
         }
