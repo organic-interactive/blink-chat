@@ -164,26 +164,12 @@ public class Client extends Application {
     private void addMessage(String msg) {
         textArea.appendText("\n" + msg);
     }
-<<<<<<< HEAD
     private void sendMessages() {
         while (!newSends.isEmpty()) {
             String message = newSends.remove();
             System.out.println(message);
             pw.println(message);
             pw.flush();
-=======
-    private class SendMessages implements Runnable {
-        public void run() {
-            while (true){
-                System.out.println("Is sendmsg running a lot?");
-                while (!newSends.isEmpty()) {
-                    String message = newSends.remove();
-                    System.out.println(message);
-                    pw.println(message);
-                    pw.flush();
-                }
-            }
->>>>>>> b1a52a378155c70cb3347df41b70a15cae7cad89
         }
     }
     private class ReceiveMessages implements Runnable {
