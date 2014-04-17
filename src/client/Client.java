@@ -175,10 +175,9 @@ public class Client extends Application {
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
-                //System.out.println("Is rcvmsg running a lot?");
                 String newMessage = "";
                 try {
-                    while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
+                    while ((newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
                             addMessage(newMessage);
                             msgNotif.playSound();
