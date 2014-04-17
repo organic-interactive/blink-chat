@@ -34,7 +34,10 @@ public class ServerManager {
     ServerManager() {
             System.out.println("go");
     }
-
+    /**
+     * startConnectionManager() starts the collection of clients who will have
+     * their data sent to each other client when received by the server.
+     */
     public void startConnectionManager() {
         class ConnectionManager implements Runnable {
             public void run() {
@@ -49,12 +52,11 @@ public class ServerManager {
                 while (true){
                     Socket sock = null; 
                     try {
-                        sock = sersock.accept(); // reading from keyboard (keyRead object)
+                        sock = sersock.accept();
                     } catch (IOException ex) {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
-                    // sending to client (pwrite object) 
                     OutputStream ostream = null;
                     try {
                         ostream = sock.getOutputStream();
@@ -62,7 +64,6 @@ public class ServerManager {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     PrintWriter pwrite = new PrintWriter(ostream, true);
-                    // receiving from server ( receiveRead object) 
                     InputStream istream = null;
                     try {
                         istream = sock.getInputStream();
@@ -81,6 +82,7 @@ public class ServerManager {
     }
     private void messageSenderStart() {
         class MessageSender implements Runnable{
+            @Override
             public void run() {
                 while (true) {
                     while (!newMessages.isEmpty()) {
@@ -98,13 +100,13 @@ public class ServerManager {
     private void clientManagerStart(final Sender sender) {
         class ClientManager implements Runnable {
             public void run(){
-                String receiveMessage, sendMessage;
                 while (true){
                     if (sender.hasMessages()) {
                         Message newMessage = sender.getMessage();
                         newMessages.add(newMessage);
                         System.out.println(newMessage.getText());
                     } else if (!sender.isConnected()) {
+                        clients.remove(sender);
                         break;
                     }
                 }
