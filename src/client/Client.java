@@ -1,5 +1,6 @@
 package client;
 
+import blink.Notification;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,6 +29,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  *
@@ -44,6 +47,9 @@ public class Client extends Application {
     private BufferedReader receiveRead;
     private String username = "";
     Stage nickStage;
+    private Notification msgNotif;
+    private Notification logonNotif;
+    
     @Override
     public void start(Stage primaryStage) throws IOException {
         Socket sock = null;
@@ -144,14 +150,18 @@ public class Client extends Application {
                 System.exit(0);
             }
         });
+        
+        msgNotif = new Notification("resources/sound/ys.wav");
+        //logonNotif = new Notification("");
+        
     }
     private void addMessage(String msg) {
         textArea.appendText("\n" + msg);
     }
     private class SendMessages implements Runnable {
         public void run() {
-            
             while (true){
+                System.out.println("Is sendmsg running a lot?");
                 while (!newSends.isEmpty()) {
                     String message = newSends.remove();
                     System.out.println(message);
@@ -164,11 +174,13 @@ public class Client extends Application {
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
+                //System.out.println("Is rcvmsg running a lot?");
                 String newMessage = "";
                 try {
                     while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
                             addMessage(newMessage);
+                            msgNotif.playSound();
                         }
                     }
                 } catch (IOException ex) {

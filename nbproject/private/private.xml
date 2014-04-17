@@ -3,11 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Paul/Documents/NetBeansProjects/Blink/src/client/Client.java</file>
-            <file>file:/C:/Users/Paul/Documents/NetBeansProjects/Blink/src/blink/Message.java</file>
-            <file>file:/C:/Users/Paul/Documents/NetBeansProjects/Blink/src/server/Server.java</file>
-            <file>file:/C:/Users/Paul/Documents/NetBeansProjects/Blink/src/blink/Sender.java</file>
-            <file>file:/C:/Users/Paul/Documents/NetBeansProjects/Blink/src/server/ServerManager.java</file>
+            <file>file:/C:/Users/AJ/Desktop/blink-chat-master_2/blink-chat-master/src/blink/Notification.java</file>
+            <file>file:/C:/Users/AJ/Desktop/blink-chat-master_2/blink-chat-master/src/server/ServerManager.java</file>
+            <file>file:/C:/Users/AJ/Desktop/blink-chat-master_2/blink-chat-master/src/server/Server.java</file>
+            <file>file:/C:/Users/AJ/Desktop/blink-chat-master_2/blink-chat-master/src/client/Client.java</file>
+            <file>file:/C:/Users/AJ/Desktop/blink-chat-master_2/blink-chat-master/src/blink/Message.java</file>
         </group>
     </open-files>
 </project-private>
