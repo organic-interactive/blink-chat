@@ -26,6 +26,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -41,19 +42,20 @@ public class Client extends Application {
     private TextField textField;
     private TextField nickEntry;
     private TextArea textArea;
+    private HTMLEditor htmlEditor;
     private ExecutorService executor;
     private ConcurrentLinkedQueue<String> newSends = new ConcurrentLinkedQueue<String>();
     private PrintWriter pw;
     private BufferedReader receiveRead;
     private String username = "";
+    private Socket sock = null;
+    private OutputStream ostream;
     Stage nickStage;
     private Notification msgNotif;
     private Notification logonNotif;
     
     @Override
     public void start(Stage primaryStage) throws IOException {
-        Socket sock = null;
-        
         try {
 //            sock = new Socket("50.174.120.178", 3000); // reading from keyboard (keyRead object)
             sock = new Socket("127.0.0.1", 3000);
@@ -61,9 +63,11 @@ public class Client extends Application {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Socket sock = new Socket("127.0.0.1", 3000); // reading from keyboard (keyRead object) 
-        OutputStream ostream = sock.getOutputStream();
+        ostream = sock.getOutputStream();
         receiveRead = new BufferedReader(new InputStreamReader(sock.getInputStream()));
         pw = new PrintWriter(ostream, true);   // receiving from server ( receiveRead object) 
+        htmlEditor = new HTMLEditor();
+        htmlEditor.setHtmlText("<b>stuff.</b> this is not bold.");
         textArea = new TextArea();
         textArea.setWrapText(true);
         scrollPane = new ScrollPane();
@@ -81,7 +85,9 @@ public class Client extends Application {
                     String newMessage = username + ":" + textField.getText();
                     newSends.add(newMessage);
                     addMessage(newMessage);
+                    sendMessages();
                     textField.setText("");
+                    System.out.println(isConnected());
                 }
             }
         });
@@ -120,7 +126,6 @@ public class Client extends Application {
         primaryStage.show();
         primaryStage.setResizable(false);
         executor = Executors.newCachedThreadPool();
-        executor.execute(new SendMessages());
         executor.execute(new ReceiveMessages());
         nickStage = new Stage();
         nickStage.initOwner(primaryStage);
@@ -144,6 +149,7 @@ public class Client extends Application {
         nickStage.setResizable(false);
         nickStage.show();
         nickStage.requestFocus();
+        
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
@@ -158,26 +164,20 @@ public class Client extends Application {
     private void addMessage(String msg) {
         textArea.appendText("\n" + msg);
     }
-    private class SendMessages implements Runnable {
-        public void run() {
-            while (true){
-                System.out.println("Is sendmsg running a lot?");
-                while (!newSends.isEmpty()) {
-                    String message = newSends.remove();
-                    System.out.println(message);
-                    pw.println(message);
-                    pw.flush();
-                }
-            }
+    private void sendMessages() {
+        while (!newSends.isEmpty()) {
+            String message = newSends.remove();
+            System.out.println(message);
+            pw.println(message);
+            pw.flush();
         }
     }
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
-                //System.out.println("Is rcvmsg running a lot?");
                 String newMessage = "";
                 try {
-                    while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
+                    while ((newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
                             addMessage(newMessage);
                             msgNotif.playSound();
@@ -189,6 +189,15 @@ public class Client extends Application {
                 }
                 
             }
+        }
+    }
+    public boolean isConnected() {
+        try {
+            sock.getInputStream();
+            sock.getOutputStream();
+            return true;
+        } catch (IOException ex) {
+            return false;
         }
     }
     /**
