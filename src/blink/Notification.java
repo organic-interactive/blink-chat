@@ -23,12 +23,9 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 public class Notification {
 
     String filePath;
-    AudioInputStream inputStream;
-    File f;
 
     public Notification(String inFilePath) {
         filePath = inFilePath;
-        f = new File(filePath);
     }
 
     public String getFilePath() {
