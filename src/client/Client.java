@@ -1,5 +1,6 @@
 package client;
 
+import blink.Notification;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,6 +30,8 @@ import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  *
@@ -48,6 +51,9 @@ public class Client extends Application {
     private Socket sock = null;
     private OutputStream ostream;
     Stage nickStage;
+    private Notification msgNotif;
+    private Notification logonNotif;
+    
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
@@ -150,26 +156,46 @@ public class Client extends Application {
                 System.exit(0);
             }
         });
+        
+        msgNotif = new Notification("resources/sound/ys.wav");
+        //logonNotif = new Notification("");
+        
     }
     private void addMessage(String msg) {
         textArea.appendText("\n" + msg);
     }
+<<<<<<< HEAD
     private void sendMessages() {
         while (!newSends.isEmpty()) {
             String message = newSends.remove();
             System.out.println(message);
             pw.println(message);
             pw.flush();
+=======
+    private class SendMessages implements Runnable {
+        public void run() {
+            while (true){
+                System.out.println("Is sendmsg running a lot?");
+                while (!newSends.isEmpty()) {
+                    String message = newSends.remove();
+                    System.out.println(message);
+                    pw.println(message);
+                    pw.flush();
+                }
+            }
+>>>>>>> b1a52a378155c70cb3347df41b70a15cae7cad89
         }
     }
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
+                //System.out.println("Is rcvmsg running a lot?");
                 String newMessage = "";
                 try {
                     while (receiveRead.ready() && (newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
                             addMessage(newMessage);
+                            msgNotif.playSound();
                         }
                     }
                 } catch (IOException ex) {
