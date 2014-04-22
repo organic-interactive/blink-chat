@@ -172,6 +172,7 @@ public class Client extends Application {
         });
         
         msgNotif = new Notification("resources/sound/ys.wav");
+        msgNotif.playSound();
         //logonNotif = new Notification("");
         
     }
