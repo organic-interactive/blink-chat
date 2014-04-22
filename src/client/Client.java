@@ -16,7 +16,9 @@ import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -26,13 +28,11 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
+import org.json.JSONException;
+import org.json.JSONObject;
 /**
  *
  * @author popuguy
@@ -42,7 +42,6 @@ public class Client extends Application {
     private TextField textField;
     private TextField nickEntry;
     private TextArea textArea;
-    private HTMLEditor htmlEditor;
     private ExecutorService executor;
     private ConcurrentLinkedQueue<String> newSends = new ConcurrentLinkedQueue<String>();
     private PrintWriter pw;
@@ -50,6 +49,7 @@ public class Client extends Application {
     private String username = "";
     private Socket sock = null;
     private OutputStream ostream;
+    private Canvas contentArea;
     Stage nickStage;
     private Notification msgNotif;
     private Notification logonNotif;
@@ -66,8 +66,9 @@ public class Client extends Application {
         ostream = sock.getOutputStream();
         receiveRead = new BufferedReader(new InputStreamReader(sock.getInputStream()));
         pw = new PrintWriter(ostream, true);   // receiving from server ( receiveRead object) 
-        htmlEditor = new HTMLEditor();
-        htmlEditor.setHtmlText("<b>stuff.</b> this is not bold.");
+        contentArea = new Canvas();
+        contentArea.getGraphicsContext2D().strokeText("TEST TEXT", 0, 0);
+        contentArea.minHeight(100);
         textArea = new TextArea();
         textArea.setWrapText(true);
         scrollPane = new ScrollPane();
@@ -82,8 +83,17 @@ public class Client extends Application {
             @Override
             public void handle(ActionEvent t) {
                 if (textField.getText().length() > 0) {
-                    String newMessage = username + ":" + textField.getText();
-                    newSends.add(newMessage);
+                    JSONObject message = new JSONObject();
+                    try {
+                        message.put("type", "message");
+                        message.put("sender", username);
+                        message.put("content", textField.getText());   
+                    } catch (JSONException ex) {
+                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    System.out.println(message.toString());
+                    String newMessage = username + ": " + textField.getText();
+                    newSends.add(message.toString());
                     addMessage(newMessage);
                     sendMessages();
                     textField.setText("");
@@ -113,12 +123,16 @@ public class Client extends Application {
             }
         });
         grid.add(textArea, 0, 0);
+//        grid.add(contentArea, 0, 0);
         grid.add(textField, 0, 1);
-        grid.setMinHeight(500);
+        grid.setMinHeight(800);
         grid.setMinWidth(300);
         root.getChildren().add(grid);
+        root.setPadding(new Insets(10));
+//        root.getChildren().add(contentArea);
+//        root.getChildren().add(textField);
         
-        Scene scene = new Scene(root, 300, 500);
+        Scene scene = new Scene(root, 300, 800);
         
         primaryStage.setTitle("blink");
         primaryStage.setScene(scene);

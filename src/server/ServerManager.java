@@ -83,7 +83,7 @@ public class ServerManager {
     private void messageSenderStart() {
         class MessageSender implements Runnable{
             @Override
-            public void run() {
+            public void run() { //should be changed to reduce CPU usage
                 while (true) {
                     while (!newMessages.isEmpty()) {
                         Message newMessage = newMessages.remove();
@@ -99,7 +99,7 @@ public class ServerManager {
     }
     private void clientManagerStart(final Sender sender) {
         class ClientManager implements Runnable {
-            public void run(){
+            public void run(){ //needs a change for CPU usage not being so high
                 while (true){
                     if (sender.hasMessages()) {
                         Message newMessage = sender.getMessage();

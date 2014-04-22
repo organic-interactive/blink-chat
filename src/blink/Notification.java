@@ -39,6 +39,7 @@ public class Notification {
         new Thread(new Runnable() {
             public void run() {
                 try {
+                    System.out.println("in thread");
                     Clip clip = AudioSystem.getClip();
                     AudioInputStream inputStream = AudioSystem.getAudioInputStream(new File(filePath));
                     clip.open(inputStream);
