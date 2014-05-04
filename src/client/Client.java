@@ -1,5 +1,6 @@
 package client;
 
+import blink.Message;
 import blink.Notification;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +36,7 @@ import javafx.stage.WindowEvent;
 import org.json.JSONException;
 import org.json.JSONObject;
 /**
- *
+ * a class for the Client interface and message receiving/sending
  * @author popuguy
  */
 public class Client extends Application {
@@ -53,6 +55,9 @@ public class Client extends Application {
     Stage nickStage;
     private Notification msgNotif;
     private Notification logonNotif;
+    private Date lastConnected = new Date();
+    private long maxRefreshTime = 30000;
+    private boolean connected = true;
     
     @Override
     public void start(Stage primaryStage) throws IOException {
@@ -141,6 +146,7 @@ public class Client extends Application {
         primaryStage.setResizable(false);
         executor = Executors.newCachedThreadPool();
         executor.execute(new ReceiveMessages());
+        executor.execute(new KeepConnected());
         nickStage = new Stage();
         nickStage.initOwner(primaryStage);
         nickStage.setTitle("enter nick");
@@ -176,6 +182,21 @@ public class Client extends Application {
         //logonNotif = new Notification("");
         
     }
+    private void processReceived(String text) {
+        Message message = null;
+        try {
+            message = new Message(text);
+        } catch (JSONException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (message.getType().equals("message")) {
+            addMessage(message.getText());
+        } else if (message.getType().equals("keep-alive")) {
+            lastConnected = new Date();
+        } else {
+            System.out.println("Weird receive.");
+        }
+    }
     private void addMessage(String msg) {
         textArea.appendText("\n" + msg);
     }
@@ -187,33 +208,46 @@ public class Client extends Application {
             pw.flush();
         }
     }
+    private class KeepConnected implements Runnable {
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(maxRefreshTime);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                if (! isConnected()) {
+                    System.out.println("Disconnected!");
+                    connected = false;
+                } else if (! connected) {
+                    System.out.println("Reconnected!");
+                    connected = true;
+                }
+            }
+        }
+    }
     private class ReceiveMessages implements Runnable {
         public void run() {
             while (true){
-                String newMessage = "";
+                String newMessage;
                 try {
                     while ((newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
-                            addMessage(newMessage);
+                            processReceived(newMessage);
                             msgNotif.playSound();
                         }
                     }
                 } catch (IOException ex) {
                     System.out.println("receive error");
-                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    break;
                 }
                 
             }
         }
     }
     public boolean isConnected() {
-        try {
-            sock.getInputStream();
-            sock.getOutputStream();
-            return true;
-        } catch (IOException ex) {
-            return false;
-        }
+        return ((new Date()).getTime() - lastConnected.getTime() < maxRefreshTime);
     }
     /**
      * The main() method is ignored in correctly deployed JavaFX application.

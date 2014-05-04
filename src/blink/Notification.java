@@ -18,7 +18,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  *
- * @author AJ
+ * @author austingayler
  */
 public class Notification {
 
