@@ -22,27 +22,34 @@ public class Message {
     private String text;
     private int userId;
     private String type = "message";
+    private String json;
     /**
      * a Message object that represents a received message that will be processed from JSON
      * @param jsonReceived given JSON content of the message
      * @throws JSONException 
      */
-    public Message(String jsonReceived) throws JSONException {
-        JSONObject json = new JSONObject(jsonReceived);
-        if (json.has("timestamp")) {
-            timestamp = Long.parseLong((String)json.get("timestamp"));
-        }
-        if (json.has("content")) {
-            text = (String)json.get("content");
-        }
-        userId = i++;
+    public Message(String jsonReceived) {
+        JSONObject json;
         try {
-            type = (String)json.get("type");
+            json = new JSONObject(jsonReceived);
+            if (json.has("timestamp")) {
+                timestamp = Long.parseLong((String)json.get("timestamp"));
+            }
+            if (json.has("content")) {
+                text = (String)json.get("content");
+            }
+            userId = i++;
+            try {
+                type = (String)json.get("type");
+            }
+            catch (Exception e) {
+                System.err.println("Error receiving message. No type in JSON received.");
+                System.exit(-1);
+            }
+        } catch (JSONException ex) {
+            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (Exception e) {
-            System.err.println("Error receiving message. No type in JSON received.");
-            System.exit(-1);
-        }
+        this.json = jsonReceived;
         
     }
     /**
@@ -56,6 +63,15 @@ public class Message {
         this.text = text;
         this.userId = userId;
         this.type = "message";
+        JSONObject json = new JSONObject();
+        try {
+            json.put("timestamp", timestamp);
+            json.put("content", text);
+            json.put("type", "message");
+        } catch (JSONException ex) {
+            Logger.getLogger(Message.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.json = json.toString();
     }
     /**
      * gets the type of a message received
@@ -65,7 +81,14 @@ public class Message {
         return type;
     }
     /**
-     * gets the text contents of a messaeg
+     * gets the JSON representation of the message
+     * @return JSON representation of message
+     */
+    public String getJSON() {
+        return json;
+    }
+    /**
+     * gets the text contents of a message
      * @return the text content of the message
      */
     public String getText() {

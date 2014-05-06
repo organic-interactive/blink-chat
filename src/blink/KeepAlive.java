@@ -17,7 +17,7 @@ import org.json.JSONObject;
  */
 public class KeepAlive extends Message{
     private static final String json = createKeepAliveJSON();
-    public KeepAlive() throws JSONException {
+    public KeepAlive() {
         super(json);
     }
     private static String createKeepAliveJSON() {

@@ -1,5 +1,6 @@
 package server;
 
+import blink.KeepAlive;
 import blink.Message;
 import blink.Sender;
 import java.io.BufferedReader;
@@ -22,6 +23,7 @@ import java.util.logging.Logger;
  * @author popuguy
  */
 public class ServerManager {
+    private static final int KEEP_ALIVE_TIME = 15000;
     private ExecutorService executor = Executors.newCachedThreadPool();
     private ArrayList<Sender> clients = new ArrayList<Sender>();
     private ConcurrentLinkedQueue<Message> newMessages = new ConcurrentLinkedQueue<Message>();
@@ -93,8 +95,8 @@ public class ServerManager {
     }
     private void clientManagerStart(final Sender sender) {
         class ClientManager implements Runnable {
-            public void run(){ //needs a change for CPU usage not being so high
-                while (true){
+            public void run() { //needs a change for CPU usage not being so high
+                while (true) {
                     if (sender.hasMessages()) {
                         Message newMessage = sender.getMessage();
                         newMessages.add(newMessage);
@@ -106,6 +108,20 @@ public class ServerManager {
                 }
             }
         }
+        class KeepClientAlive implements Runnable {
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(KEEP_ALIVE_TIME);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ServerManager.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    Message ka = new KeepAlive();
+                    sender.sendMessage(ka);
+                }
+            }
+        }
         executor.execute(new ClientManager());
+        executor.execute(new KeepClientAlive());
     }
 }

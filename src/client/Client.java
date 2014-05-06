@@ -184,12 +184,9 @@ public class Client extends Application {
     }
     private void processReceived(String text) {
         Message message = null;
-        try {
-            message = new Message(text);
-        } catch (JSONException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        message = new Message(text);
         if (message.getType().equals("message")) {
+            msgNotif.playSound();
             addMessage(message.getText());
         } else if (message.getType().equals("keep-alive")) {
             lastConnected = new Date();
@@ -234,11 +231,11 @@ public class Client extends Application {
                     while ((newMessage = receiveRead.readLine()) != null) {
                         if (newMessage.length() > 0) {
                             processReceived(newMessage);
-                            msgNotif.playSound();
                         }
                     }
                 } catch (IOException ex) {
-                    System.out.println("receive error");
+                    System.out.println("Disconnected!");
+                    connected = false;
                     //Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                     break;
                 }

@@ -31,7 +31,7 @@ public class Sender {
         this.bufferedReader = br;
     }
     public void sendMessage(Message message) {
-        printWriter.println(message.getText());
+        printWriter.println(message.getJSON());
     }
     public boolean isConnected() {
         return connected;
