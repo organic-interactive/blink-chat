@@ -1,1 +1,1 @@
-Chat program with a client and server. Will make good ASAP.
+Chat program with a client and server. Currently on hiatus.
